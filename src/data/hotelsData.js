@@ -9,7 +9,7 @@ const hotels = [
     originalPrice: 18000,
     roomType: "Deluxe Room",
     amenities: ["Free WiFi", "Pool", "Spa", "Breakfast"],
-    image: "https://via.placeholder.com/300x200?text=Taj+Mahal+Palace",
+    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=250&fit=crop",
   },
   {
     id: 2,
@@ -21,7 +21,7 @@ const hotels = [
     originalPrice: 12000,
     roomType: "Superior Room",
     amenities: ["Free WiFi", "Pool", "Gym", "Breakfast"],
-    image: "https://via.placeholder.com/300x200?text=Trident+Hotel",
+    image: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=400&h=250&fit=crop",
   },
   {
     id: 3,
@@ -33,7 +33,7 @@ const hotels = [
     originalPrice: 13500,
     roomType: "Welcome Room",
     amenities: ["Free WiFi", "Pool", "Spa", "Parking"],
-    image: "https://via.placeholder.com/300x200?text=ITC+Maratha",
+    image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&h=250&fit=crop",
   },
   {
     id: 4,
@@ -45,7 +45,7 @@ const hotels = [
     originalPrice: 10000,
     roomType: "Deluxe Room",
     amenities: ["Free WiFi", "Gym", "Pool", "Parking"],
-    image: "https://via.placeholder.com/300x200?text=Marriott+Mumbai",
+    image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&h=250&fit=crop",
   },
   {
     id: 5,
@@ -57,7 +57,7 @@ const hotels = [
     originalPrice: 5500,
     roomType: "Standard Room",
     amenities: ["Free WiFi", "Gym", "Parking"],
-    image: "https://via.placeholder.com/300x200?text=Ibis+Mumbai",
+    image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&h=250&fit=crop",
   },
   {
     id: 6,
@@ -69,7 +69,7 @@ const hotels = [
     originalPrice: 4000,
     roomType: "Classic Room",
     amenities: ["Free WiFi", "Breakfast", "Parking"],
-    image: "https://via.placeholder.com/300x200?text=Bloom+Hotel",
+    image: "https://images.unsplash.com/photo-1444201983204-c43cbd584d93?w=400&h=250&fit=crop",
   },
 ];
 
