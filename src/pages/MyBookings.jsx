@@ -57,46 +57,82 @@ function MyBookings() {
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <p className="text-xs text-gray-400">Booking ID</p>
-                    <p className="text-sm font-bold text-gray-800">{booking.bookingId}</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">
+                      {booking.bookingType === "flight" ? "✈️" : "🏨"}
+                    </span>
+                    <div>
+                      <p className="text-xs text-gray-400">Booking ID</p>
+                      <p className="text-sm font-bold text-gray-800">{booking.bookingId}</p>
+                    </div>
                   </div>
                   <span className="bg-green-100 text-green-600 text-xs font-bold px-3 py-1 rounded-full capitalize">
                     {booking.status}
                   </span>
                 </div>
 
-                {/* Flight */}
-                <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-100">
-                  <div>
-                    <p className="text-base font-bold text-gray-800">{booking.flight.airline}</p>
-                    <p className="text-xs text-gray-400">{booking.flight.flightNumber}</p>
+                {/* Flight Booking */}
+                {booking.bookingType === "flight" && (
+                  <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-100">
+                    <div>
+                      <p className="text-base font-bold text-gray-800">{booking.flight.airline}</p>
+                      <p className="text-xs text-gray-400">{booking.flight.flightNumber}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-bold">{booking.flight.departure}</p>
+                      <p className="text-xs text-gray-400">{booking.flight.from}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-400">{booking.flight.duration}</p>
+                      <div className="w-16 h-px bg-gray-300 my-1 mx-auto"></div>
+                      <p className="text-xs text-green-500">{booking.flight.type}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-bold">{booking.flight.arrival}</p>
+                      <p className="text-xs text-gray-400">{booking.flight.to}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-bold text-[#eb2026]">
+                        ₹{booking.totalPrice.toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold">{booking.flight.departure}</p>
-                    <p className="text-xs text-gray-400">{booking.flight.from}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-gray-400">{booking.flight.duration}</p>
-                    <div className="w-16 h-px bg-gray-300 my-1 mx-auto"></div>
-                    <p className="text-xs text-green-500">{booking.flight.type}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold">{booking.flight.arrival}</p>
-                    <p className="text-xs text-gray-400">{booking.flight.to}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xl font-bold text-[#eb2026]">
-                      ₹{booking.totalPrice.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
+                )}
 
-                {/* Passengers */}
+                {/* Hotel Booking */}
+                {booking.bookingType === "hotel" && (
+                  <div className="flex gap-4 mb-4 pb-4 border-b border-gray-100">
+                    <img
+                      src={booking.hotel.image}
+                      alt={booking.hotel.name}
+                      className="w-24 h-20 object-cover rounded-lg shrink-0"
+                    />
+                    <div className="flex-1">
+                      <p className="text-base font-bold text-gray-800">{booking.hotel.name}</p>
+                      <p className="text-xs text-gray-400 mb-1">{booking.hotel.location}</p>
+                      <p className="text-xs text-gray-600">
+                        Check In: <span className="font-semibold">{booking.checkIn}</span> →
+                        Check Out: <span className="font-semibold">{booking.checkOut}</span>
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Rooms: <span className="font-semibold">{booking.rooms}</span>
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-bold text-[#eb2026]">
+                        ₹{booking.totalPrice.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Passengers / Guests */}
                 <div>
-                  <p className="text-xs font-bold text-gray-500 mb-2">PASSENGERS</p>
+                  <p className="text-xs font-bold text-gray-500 mb-2">
+                    {booking.bookingType === "flight" ? "PASSENGERS" : "GUESTS"}
+                  </p>
                   <div className="flex gap-3 flex-wrap">
-                    {booking.passengers.map((p, i) => (
+                    {(booking.bookingType === "flight" ? booking.passengers : booking.guests).map((p, i) => (
                       <span key={i} className="text-xs bg-blue-50 text-[#008cff] px-3 py-1 rounded-full">
                         {p.name} · {p.age} yrs
                       </span>

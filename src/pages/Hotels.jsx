@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import hotels from "../data/hotelsData.js";
 
 function Hotels() {
@@ -113,6 +114,7 @@ function Hotels() {
 }
 
 function HotelCard({ hotel }) {
+  const navigate = useNavigate();
   const discount = Math.round(
     ((hotel.originalPrice - hotel.price) / hotel.originalPrice) * 100
   );
@@ -132,22 +134,15 @@ function HotelCard({ hotel }) {
         <div>
           <h3 className="text-lg font-bold text-gray-800">{hotel.name}</h3>
           <p className="text-sm text-gray-400 mb-2">{hotel.location}</p>
-
-          {/* Rating */}
           <div className="flex items-center gap-2 mb-3">
             <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
               {hotel.rating} ⭐
             </span>
             <span className="text-xs text-gray-400">{hotel.reviews.toLocaleString()} reviews</span>
           </div>
-
-          {/* Amenities */}
           <div className="flex flex-wrap gap-2">
             {hotel.amenities.map((a) => (
-              <span
-                key={a}
-                className="text-xs bg-blue-50 text-[#008cff] px-2 py-1 rounded-full"
-              >
+              <span key={a} className="text-xs bg-blue-50 text-[#008cff] px-2 py-1 rounded-full">
                 {a}
               </span>
             ))}
@@ -166,7 +161,10 @@ function HotelCard({ hotel }) {
             <p className="text-xs text-green-500 font-semibold">{discount}% off</p>
             <p className="text-xs text-gray-400">per night</p>
           </div>
-          <button className="bg-[#eb2026] hover:bg-[#c41a1f] text-white text-sm font-bold px-6 py-2 rounded-full transition-all duration-200">
+          <button
+            onClick={() => navigate("/hotel-booking", { state: hotel })}
+            className="bg-[#eb2026] hover:bg-[#c41a1f] text-white text-sm font-bold px-6 py-2 rounded-full transition-all duration-200"
+          >
             BOOK NOW
           </button>
         </div>

@@ -6,6 +6,7 @@ import Hotels from "./pages/Hotels.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import FlightBooking from "./pages/FlightBooking.jsx";
+import HotelBooking from "./pages/HotelBooking.jsx";
 import BookingSummary from "./pages/BookingSummary.jsx";
 import MyBookings from "./pages/MyBookings.jsx";
 import ProtectedRoute from "./utils/ProtectedRoute.jsx";
@@ -21,19 +22,16 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/flight-booking" element={
-          <ProtectedRoute>
-            <FlightBooking />
-          </ProtectedRoute>
+          <ProtectedRoute><FlightBooking /></ProtectedRoute>
+        } />
+        <Route path="/hotel-booking" element={
+          <ProtectedRoute><HotelBooking /></ProtectedRoute>
         } />
         <Route path="/booking-summary" element={
-          <ProtectedRoute>
-            <BookingSummary />
-          </ProtectedRoute>
+          <ProtectedRoute><BookingSummary /></ProtectedRoute>
         } />
         <Route path="/my-bookings" element={
-          <ProtectedRoute>
-            <MyBookings />
-          </ProtectedRoute>
+          <ProtectedRoute><MyBookings /></ProtectedRoute>
         } />
       </Routes>
     </>
