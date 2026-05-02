@@ -20,38 +20,66 @@ function FlightBooking() {
     setPassengers(updated);
   };
 
-  const handleSubmit = async () => {
-    // Validate
-    for (let p of passengers) {
-      if (!p.name || !p.age) {
-        setError("Please fill all passenger details");
-        return;
-      }
-    }
+  // const handleSubmit = async () => {
+  //   // Validate
+  //   for (let p of passengers) {
+  //     if (!p.name || !p.age) {
+  //       setError("Please fill all passenger details");
+  //       return;
+  //     }
+  //   }
 
-    setLoading(true);
-    setError("");
+  //   setLoading(true);
+  //   setError("");
 
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/bookings`,
-        {
-          flight,
-          passengers,
-          totalPrice: flight.price * passengers.length,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      navigate("/booking-summary", { state: res.data.booking });
-    } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     const res = await axios.post(
+  //       `${import.meta.env.VITE_API_URL}/api/bookings`,
+  //       {
+  //         flight,
+  //         passengers,
+  //         totalPrice: flight.price * passengers.length,
+  //       },
+  //       {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       }
+  //     );
+  //     navigate("/booking-summary", { state: res.data.booking });
+  //   } catch (err) {
+  //     setError(err.response?.data?.message || "Something went wrong");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
+
+
+const handleSubmit = async () => {
+  for (let p of passengers) {
+    if (!p.name || !p.age) {
+      setError("Please fill all passenger details");
+      return;
     }
-  };
+  }
+  setError("");
+  navigate("/payment", {
+    state: {
+      type: "flight",
+      bookingData: {
+        flight,
+        passengers,
+        totalPrice: flight.price * passengers.length,
+      },
+    },
+  });
+};
+
+
+
+
+
 
   if (!flight) {
     return (

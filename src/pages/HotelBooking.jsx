@@ -31,35 +31,65 @@ function HotelBooking() {
     setGuests(updated);
   };
 
+  // const handleSubmit = async () => {
+  //   if (!checkIn || !checkOut) {
+  //     setError("Please select check-in and check-out dates");
+  //     return;
+  //   }
+  //   for (let g of guests) {
+  //     if (!g.name || !g.age) {
+  //       setError("Please fill all guest details");
+  //       return;
+  //     }
+  //   }
+
+  //   setLoading(true);
+  //   setError("");
+
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     const res = await axios.post(
+  //       `${import.meta.env.VITE_API_URL}/api/bookings/hotel`,
+  //       { hotel, guests, checkIn, checkOut, rooms, totalPrice },
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  //     navigate("/booking-summary", { state: res.data.booking });
+  //   } catch (err) {
+  //     setError(err.response?.data?.message || "Something went wrong");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
   const handleSubmit = async () => {
-    if (!checkIn || !checkOut) {
-      setError("Please select check-in and check-out dates");
+  if (!checkIn || !checkOut) {
+    setError("Please select check-in and check-out dates");
+    return;
+  }
+  for (let g of guests) {
+    if (!g.name || !g.age) {
+      setError("Please fill all guest details");
       return;
     }
-    for (let g of guests) {
-      if (!g.name || !g.age) {
-        setError("Please fill all guest details");
-        return;
-      }
-    }
+  }
+  setError("");
+  navigate("/payment", {
+    state: {
+      type: "hotel",
+      bookingData: {
+        hotel,
+        guests,
+        checkIn,
+        checkOut,
+        rooms,
+        totalPrice,
+      },
+    },
+  });
+};
 
-    setLoading(true);
-    setError("");
 
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/bookings/hotel`,
-        { hotel, guests, checkIn, checkOut, rooms, totalPrice },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      navigate("/booking-summary", { state: res.data.booking });
-    } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!hotel) {
     return (
