@@ -1,14 +1,28 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import hotels from "../data/hotelsData.js";
 
 function Hotels() {
+  const [searchParams] = useSearchParams();
   const [sortBy, setSortBy] = useState("price");
   const [maxPrice, setMaxPrice] = useState(15000);
   const [minRating, setMinRating] = useState(0);
 
+  const city = searchParams.get("city") || "";
+  const checkIn = searchParams.get("checkIn") || "";
+  const checkOut = searchParams.get("checkOut") || "";
+  const rooms = searchParams.get("rooms") || "1";
+
   const filtered = hotels
-    .filter((h) => h.price <= maxPrice && h.rating >= minRating)
+    .filter((h) => {
+      const matchCity = city
+        ? h.location.toLowerCase().includes(city.toLowerCase()) ||
+          h.name.toLowerCase().includes(city.toLowerCase())
+        : true;
+      const matchPrice = h.price <= maxPrice;
+      const matchRating = h.rating >= minRating;
+      return matchCity && matchPrice && matchRating;
+    })
     .sort((a, b) => {
       if (sortBy === "price") return a.price - b.price;
       if (sortBy === "rating") return b.rating - a.rating;
@@ -22,9 +36,14 @@ function Hotels() {
       {/* Header */}
       <div className="bg-[#008cff] py-6 px-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl font-bold text-white">Hotels in Mumbai</h1>
+          <h1 className="text-2xl font-bold text-white">
+            {city ? `Hotels in ${city}` : "All Hotels"}
+          </h1>
           <p className="text-blue-100 text-sm mt-1">
-            {hotels.length} hotels found · 1 Room · 2 Adults
+            {filtered.length} hotels found
+            {checkIn ? ` · Check In: ${checkIn}` : ""}
+            {checkOut ? ` · Check Out: ${checkOut}` : ""}
+            {` · ${rooms} Room(s)`}
           </p>
         </div>
       </div>
@@ -36,7 +55,6 @@ function Hotels() {
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <h2 className="text-sm font-bold text-gray-700 mb-4">FILTERS</h2>
 
-            {/* Price Filter */}
             <div className="mb-6">
               <p className="text-xs font-semibold text-gray-500 mb-2">MAX PRICE PER NIGHT</p>
               <input
@@ -53,7 +71,6 @@ function Hotels() {
               </p>
             </div>
 
-            {/* Rating Filter */}
             <div className="mb-6">
               <p className="text-xs font-semibold text-gray-500 mb-2">MIN RATING</p>
               {[0, 3, 4, 4.5].map((r) => (
@@ -73,7 +90,6 @@ function Hotels() {
               ))}
             </div>
 
-            {/* Sort By */}
             <div>
               <p className="text-xs font-semibold text-gray-500 mb-2">SORT BY</p>
               {["price", "rating", "reviews"].map((option) => (
@@ -97,8 +113,12 @@ function Hotels() {
         <div className="flex-1 flex flex-col gap-4">
           {filtered.length === 0 ? (
             <div className="bg-white rounded-xl p-8 text-center shadow-sm">
+              <p className="text-4xl mb-3">🏨</p>
               <p className="text-gray-500 text-lg font-medium">
-                No hotels found for selected filters
+                No hotels found {city ? `in ${city}` : ""}
+              </p>
+              <p className="text-gray-400 text-sm mt-1">
+                Try searching for Mumbai
               </p>
             </div>
           ) : (
@@ -121,15 +141,11 @@ function HotelCard({ hotel }) {
 
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden flex hover:shadow-md transition-shadow duration-200">
-
-      {/* Image */}
       <img
         src={hotel.image}
         alt={hotel.name}
         className="w-56 h-44 object-cover shrink-0"
       />
-
-      {/* Details */}
       <div className="flex-1 p-4 flex justify-between">
         <div>
           <h3 className="text-lg font-bold text-gray-800">{hotel.name}</h3>
@@ -148,8 +164,6 @@ function HotelCard({ hotel }) {
             ))}
           </div>
         </div>
-
-        {/* Price & Book */}
         <div className="text-right flex flex-col justify-between">
           <div>
             <p className="text-xs text-gray-400 line-through">
@@ -169,7 +183,6 @@ function HotelCard({ hotel }) {
           </button>
         </div>
       </div>
-
     </div>
   );
 }
