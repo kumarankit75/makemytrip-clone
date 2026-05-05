@@ -34,12 +34,14 @@ function Navbar() {
         <div className="flex items-center gap-3">
           {auth && auth.user ? (
             <div className="flex items-center gap-3">
-              <div className="bg-[#008cff] text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
-                {auth.user.name ? auth.user.name.charAt(0).toUpperCase() : "U"}
-              </div>
-              <span className="text-sm font-semibold text-gray-700">
-                Hi, {auth.user.name ? auth.user.name.split(" ")[0] : "User"} 👋
-              </span>
+              <Link to="/profile" className="flex items-center gap-2 no-underline">
+                <div className="bg-[#008cff] text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold hover:bg-[#0056b3] transition-all">
+                  {auth.user.name ? auth.user.name.charAt(0).toUpperCase() : "U"}
+                </div>
+                <span className="text-sm font-semibold text-gray-700">
+                  Hi, {auth.user.name ? auth.user.name.split(" ")[0] : "User"} 👋
+                </span>
+              </Link>
               <button
                 onClick={auth.logout}
                 className="border border-gray-300 text-gray-600 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-100 transition-all"
