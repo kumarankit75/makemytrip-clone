@@ -11,7 +11,10 @@ import Payment from "./pages/Payment.jsx";
 import BookingSummary from "./pages/BookingSummary.jsx";
 import MyBookings from "./pages/MyBookings.jsx";
 import Profile from "./pages/Profile.jsx";
+import AdminLogin from "./pages/AdminLogin.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
 import ProtectedRoute from "./utils/ProtectedRoute.jsx";
+import AdminRoute from "./utils/AdminRoute.jsx";
 
 function App() {
   return (
@@ -40,6 +43,10 @@ function App() {
         } />
         <Route path="/profile" element={
           <ProtectedRoute><Profile /></ProtectedRoute>
+        } />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={
+          <AdminRoute><AdminDashboard /></AdminRoute>
         } />
       </Routes>
     </>
