@@ -5,25 +5,48 @@ import { useNavigate } from "react-router-dom";
 function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(null);
+  const [showPolicy, setShowPolicy] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/bookings/my`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setBookings(res.data.bookings);
-      } catch (err) {
-        console.log(err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchBookings();
   }, []);
+
+  const fetchBookings = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/bookings/my`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setBookings(res.data.bookings);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = async (id) => {
+    setCancelling(id);
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/bookings/cancel/${id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setBookings(bookings.map((b) =>
+        b._id === id ? { ...b, status: "cancelled" } : b
+      ));
+      setShowPolicy(null);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setCancelling(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -66,8 +89,12 @@ function MyBookings() {
                       <p className="text-sm font-bold text-gray-800">{booking.bookingId}</p>
                     </div>
                   </div>
-                  <span className="bg-green-100 text-green-600 text-xs font-bold px-3 py-1 rounded-full capitalize">
-                    {booking.status}
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full capitalize
+                    ${booking.status === "confirmed"
+                      ? "bg-green-100 text-green-600"
+                      : "bg-red-100 text-red-500"
+                    }`}>
+                    {booking.status === "confirmed" ? "✅ Confirmed" : "❌ Cancelled"}
                   </span>
                 </div>
 
@@ -127,7 +154,7 @@ function MyBookings() {
                 )}
 
                 {/* Passengers / Guests */}
-                <div>
+                <div className="mb-4">
                   <p className="text-xs font-bold text-gray-500 mb-2">
                     {booking.bookingType === "flight" ? "PASSENGERS" : "GUESTS"}
                   </p>
@@ -139,6 +166,63 @@ function MyBookings() {
                     ))}
                   </div>
                 </div>
+
+                {/* Cancellation Policy */}
+                {showPolicy === booking._id && booking.status === "confirmed" && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm font-bold text-yellow-700 mb-2">
+                      ⚠️ Cancellation Policy
+                    </p>
+                    <div className="flex flex-col gap-1">
+                      <p className="text-xs text-yellow-600">
+                        🔹 Cancelled within 24hrs of booking — Full refund
+                      </p>
+                      <p className="text-xs text-yellow-600">
+                        🔹 Cancelled 3+ days before travel — 75% refund
+                      </p>
+                      <p className="text-xs text-yellow-600">
+                        🔹 Cancelled within 3 days of travel — 50% refund
+                      </p>
+                      <p className="text-xs text-yellow-600">
+                        🔹 No show — No refund
+                      </p>
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        onClick={() => handleCancel(booking._id)}
+                        disabled={cancelling === booking._id}
+                        className="bg-[#eb2026] hover:bg-[#c41a1f] text-white text-xs font-bold px-5 py-2 rounded-full transition-all disabled:opacity-60"
+                      >
+                        {cancelling === booking._id ? "Cancelling..." : "YES, CANCEL BOOKING"}
+                      </button>
+                      <button
+                        onClick={() => setShowPolicy(null)}
+                        className="border border-gray-300 text-gray-600 text-xs font-bold px-5 py-2 rounded-full hover:bg-gray-100 transition-all"
+                      >
+                        KEEP BOOKING
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Cancel Button */}
+                {booking.status === "confirmed" && showPolicy !== booking._id && (
+                  <button
+                    onClick={() => setShowPolicy(booking._id)}
+                    className="text-sm text-red-500 font-semibold hover:underline"
+                  >
+                    Cancel Booking
+                  </button>
+                )}
+
+                {/* Cancelled Message */}
+                {booking.status === "cancelled" && (
+                  <div className="bg-red-50 border border-red-100 rounded-lg p-3">
+                    <p className="text-xs text-red-500 font-semibold">
+                      ❌ This booking has been cancelled. Refund will be processed within 5-7 business days.
+                    </p>
+                  </div>
+                )}
 
               </div>
             ))}
