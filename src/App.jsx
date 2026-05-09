@@ -13,6 +13,7 @@ import MyBookings from "./pages/MyBookings.jsx";
 import Profile from "./pages/Profile.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
+import NotFound from "./pages/NotFound.jsx";
 import ProtectedRoute from "./utils/ProtectedRoute.jsx";
 import AdminRoute from "./utils/AdminRoute.jsx";
 
@@ -48,6 +49,7 @@ function App() {
         <Route path="/admin/dashboard" element={
           <AdminRoute><AdminDashboard /></AdminRoute>
         } />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );

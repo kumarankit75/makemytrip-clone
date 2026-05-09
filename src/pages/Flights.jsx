@@ -1,25 +1,28 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import flights from "../data/flightsData.js";
+import { SkeletonCard } from "../components/Skeleton.jsx";
 
 function Flights() {
   const [searchParams] = useSearchParams();
   const [sortBy, setSortBy] = useState("price");
   const [maxPrice, setMaxPrice] = useState(6000);
+  const [loading, setLoading] = useState(true);
 
   const from = searchParams.get("from") || "";
   const to = searchParams.get("to") || "";
   const date = searchParams.get("date") || "";
   const passengers = searchParams.get("passengers") || "1";
 
+  // Simulate loading
+  useState(() => {
+    setTimeout(() => setLoading(false), 1000);
+  }, []);
+
   const filtered = flights
     .filter((f) => {
-      const matchFrom = from
-        ? f.from.toLowerCase().includes(from.toLowerCase())
-        : true;
-      const matchTo = to
-        ? f.to.toLowerCase().includes(to.toLowerCase())
-        : true;
+      const matchFrom = from ? f.from.toLowerCase().includes(from.toLowerCase()) : true;
+      const matchTo = to ? f.to.toLowerCase().includes(to.toLowerCase()) : true;
       const matchPrice = f.price <= maxPrice;
       return matchFrom && matchTo && matchPrice;
     })
@@ -53,7 +56,6 @@ function Flights() {
         <div className="w-64 shrink-0">
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <h2 className="text-sm font-bold text-gray-700 mb-4">FILTERS</h2>
-
             <div className="mb-6">
               <p className="text-xs font-semibold text-gray-500 mb-2">MAX PRICE</p>
               <input
@@ -69,7 +71,6 @@ function Flights() {
                 ₹{maxPrice.toLocaleString()}
               </p>
             </div>
-
             <div>
               <p className="text-xs font-semibold text-gray-500 mb-2">SORT BY</p>
               {["price", "duration", "departure"].map((option) => (
@@ -91,11 +92,17 @@ function Flights() {
 
         {/* Flight Results */}
         <div className="flex-1 flex flex-col gap-4">
-          {filtered.length === 0 ? (
+          {loading ? (
+            <>
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </>
+          ) : filtered.length === 0 ? (
             <div className="bg-white rounded-xl p-8 text-center shadow-sm">
               <p className="text-4xl mb-3">✈️</p>
               <p className="text-gray-500 text-lg font-medium">
-                No flights found for {from} → {to}
+                No flights found {from && to ? `for ${from} → ${to}` : ""}
               </p>
               <p className="text-gray-400 text-sm mt-1">
                 Try searching for Delhi → Mumbai

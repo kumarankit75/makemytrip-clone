@@ -1,32 +1,28 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext.jsx";
 
 function Signup() {
   const { login } = useAuth();
   const navigate = useNavigate();
-
   const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
-    setError("");
     try {
-    //   const res = await axios.post("http://localhost:5000/api/auth/register", form);
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, form);
-    
-    login(res.data.user, res.data.token);
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, form);
+      login(res.data.user, res.data.token);
+      toast.success("Account created successfully! 🎉");
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
+      toast.error(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -35,8 +31,6 @@ function Signup() {
   return (
     <div className="min-h-screen bg-[#f2f2f2] flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
-
-        {/* Logo */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-extrabold">
             <span className="text-[#eb2026]">make</span>
@@ -45,15 +39,6 @@ function Signup() {
           </h1>
           <p className="text-gray-500 text-sm mt-1">Create your account</p>
         </div>
-
-        {/* Error */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-4">
-            {error}
-          </div>
-        )}
-
-        {/* Form */}
         <div className="flex flex-col gap-4">
           <div>
             <label className="text-xs font-semibold text-gray-500 mb-1 block">FULL NAME</label>
@@ -66,7 +51,6 @@ function Signup() {
               className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#008cff] transition-all"
             />
           </div>
-
           <div>
             <label className="text-xs font-semibold text-gray-500 mb-1 block">EMAIL</label>
             <input
@@ -78,7 +62,6 @@ function Signup() {
               className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#008cff] transition-all"
             />
           </div>
-
           <div>
             <label className="text-xs font-semibold text-gray-500 mb-1 block">PASSWORD</label>
             <input
@@ -90,7 +73,6 @@ function Signup() {
               className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#008cff] transition-all"
             />
           </div>
-
           <button
             onClick={handleSubmit}
             disabled={loading}
@@ -99,14 +81,10 @@ function Signup() {
             {loading ? "Creating account..." : "SIGN UP"}
           </button>
         </div>
-
         <p className="text-center text-sm text-gray-500 mt-6">
           Already have an account?{" "}
-          <Link to="/login" className="text-[#008cff] font-semibold">
-            Login
-          </Link>
+          <Link to="/login" className="text-[#008cff] font-semibold">Login</Link>
         </p>
-
       </div>
     </div>
   );
