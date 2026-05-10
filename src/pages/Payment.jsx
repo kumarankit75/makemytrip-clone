@@ -1,70 +1,95 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 function Payment() {
   const { state } = useLocation();
   const navigate = useNavigate();
-
   const { bookingData, type } = state || {};
-
-  const [card, setCard] = useState({
-    name: "",
-    number: "",
-    expiry: "",
-    cvv: "",
-  });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    let value = e.target.value;
-    if (e.target.name === "number") {
-      value = value.replace(/\D/g, "").slice(0, 16);
-      value = value.replace(/(.{4})/g, "$1 ").trim();
-    }
-    if (e.target.name === "expiry") {
-      value = value.replace(/\D/g, "").slice(0, 4);
-      if (value.length > 2) value = value.slice(0, 2) + "/" + value.slice(2);
-    }
-    if (e.target.name === "cvv") {
-      value = value.replace(/\D/g, "").slice(0, 3);
-    }
-    setCard({ ...card, [e.target.name]: value });
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
   };
 
-  const handleSubmit = async () => {
-    if (!card.name || !card.number || !card.expiry || !card.cvv) {
-      setError("Please fill all card details");
-      return;
-    }
-    if (card.number.replace(/\s/g, "").length < 16) {
-      setError("Please enter a valid 16 digit card number");
-      return;
-    }
-    if (card.cvv.length < 3) {
-      setError("Please enter a valid CVV");
-      return;
-    }
-
+  const handlePayment = async () => {
     setLoading(true);
-    setError("");
 
     try {
-      const token = localStorage.getItem("token");
-      const endpoint = type === "flight"
-        ? "/api/bookings/flight"
-        : "/api/bookings/hotel";
+      // Load Razorpay script
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error("Failed to load payment gateway. Check your internet connection.");
+        setLoading(false);
+        return;
+      }
 
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}${endpoint}`,
-        { ...bookingData, paymentStatus: "paid" },
+      // Create order
+      const token = localStorage.getItem("token");
+      const orderRes = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/payment/create-order`,
+        { amount: bookingData.totalPrice },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      navigate("/booking-summary", { state: res.data.booking });
+      const order = orderRes.data.order;
+
+      // Open Razorpay checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "MakeMyTrip",
+        description: type === "flight"
+          ? `${bookingData.flight.airline} · ${bookingData.flight.from} → ${bookingData.flight.to}`
+          : bookingData.hotel.name,
+        order_id: order.id,
+        handler: async (response) => {
+          try {
+            // Verify payment
+            const verifyRes = await axios.post(
+              `${import.meta.env.VITE_API_URL}/api/payment/verify`,
+              {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                bookingData,
+                type,
+              },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success("Payment successful! Booking confirmed 🎉");
+            navigate("/booking-summary", { state: verifyRes.data.booking });
+          } catch (err) {
+            toast.error("Payment verification failed. Please contact support.");
+          }
+        },
+        prefill: {
+          name: bookingData.passengers?.[0]?.name || bookingData.guests?.[0]?.name || "",
+          email: localStorage.getItem("userEmail") || "",
+        },
+        theme: {
+          color: "#008cff",
+        },
+        modal: {
+          ondismiss: () => {
+            toast.error("Payment cancelled");
+            setLoading(false);
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
     } catch (err) {
-      setError(err.response?.data?.message || "Payment failed. Try again.");
+      toast.error(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -86,7 +111,7 @@ function Payment() {
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Secure Payment</h1>
           <p className="text-gray-400 text-sm mt-1">
-            Complete your booking by entering card details
+            Complete your booking with Razorpay
           </p>
         </div>
 
@@ -112,106 +137,46 @@ function Payment() {
           </div>
         </div>
 
-        {/* Card Form */}
+        {/* Payment Methods */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h2 className="text-sm font-bold text-gray-500 mb-4">CARD DETAILS</h2>
-
-          {/* Card Preview */}
-          <div className="bg-gradient-to-r from-[#008cff] to-[#0056b3] rounded-xl p-5 mb-6 text-white">
-            <p className="text-xs opacity-70 mb-4">DEBIT / CREDIT CARD</p>
-            <p className="text-xl font-mono tracking-widest mb-4">
-              {card.number || "•••• •••• •••• ••••"}
-            </p>
-            <div className="flex justify-between items-end">
-              <div>
-                <p className="text-xs opacity-70">CARD HOLDER</p>
-                <p className="text-sm font-semibold uppercase">
-                  {card.name || "YOUR NAME"}
-                </p>
+          <h2 className="text-sm font-bold text-gray-500 mb-4">PAYMENT OPTIONS</h2>
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            {["💳 Cards", "🏦 Net Banking", "📱 UPI"].map((method) => (
+              <div
+                key={method}
+                className="border border-gray-200 rounded-lg p-3 text-center text-sm font-medium text-gray-600"
+              >
+                {method}
               </div>
-              <div className="text-right">
-                <p className="text-xs opacity-70">EXPIRES</p>
-                <p className="text-sm font-semibold">
-                  {card.expiry || "MM/YY"}
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
-
-          {/* Inputs */}
-          <div className="flex flex-col gap-4">
-            <div>
-              <label className="text-xs font-semibold text-gray-500 mb-1 block">CARD HOLDER NAME</label>
-              <input
-                type="text"
-                name="name"
-                value={card.name}
-                onChange={handleChange}
-                placeholder="Name on card"
-                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#008cff] transition-all"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-500 mb-1 block">CARD NUMBER</label>
-              <input
-                type="text"
-                name="number"
-                value={card.number}
-                onChange={handleChange}
-                placeholder="1234 5678 9012 3456"
-                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#008cff] transition-all font-mono tracking-widest"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">EXPIRY DATE</label>
-                <input
-                  type="text"
-                  name="expiry"
-                  value={card.expiry}
-                  onChange={handleChange}
-                  placeholder="MM/YY"
-                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#008cff] transition-all"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">CVV</label>
-                <input
-                  type="password"
-                  name="cvv"
-                  value={card.cvv}
-                  onChange={handleChange}
-                  placeholder="•••"
-                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#008cff] transition-all"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Secure Badge */}
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <span className="text-green-500 text-lg">🔒</span>
-          <p className="text-xs text-gray-400">
-            Your payment is secured with 256-bit SSL encryption
+          <p className="text-xs text-gray-400 text-center mb-4">
+            All payment methods available via Razorpay secure checkout
           </p>
+
+          {/* Secure Badge */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <span className="text-green-500 text-lg">🔒</span>
+            <p className="text-xs text-gray-400">
+              Secured by Razorpay · 256-bit SSL encryption
+            </p>
+          </div>
+
+          {/* Pay Button */}
+          <button
+            onClick={handlePayment}
+            disabled={loading}
+            className="w-full bg-[#008cff] hover:bg-[#0056b3] text-white font-bold py-4 rounded-full text-sm transition-all duration-200 disabled:opacity-60"
+          >
+            {loading ? "Opening Payment Gateway..." : `PAY ₹${bookingData.totalPrice.toLocaleString()} →`}
+          </button>
         </div>
 
-        {/* Error */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-4">
-            {error}
-          </div>
-        )}
-
-        {/* Pay Button */}
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full bg-[#eb2026] hover:bg-[#c41a1f] text-white font-bold py-4 rounded-full text-sm transition-all duration-200 disabled:opacity-60"
-        >
-          {loading ? "Processing Payment..." : `PAY ₹${bookingData.totalPrice.toLocaleString()}`}
-        </button>
+        {/* Razorpay Logo */}
+        <div className="text-center">
+          <p className="text-xs text-gray-400">Powered by</p>
+          <p className="text-sm font-bold text-[#008cff]">Razorpay</p>
+        </div>
 
       </div>
     </div>
